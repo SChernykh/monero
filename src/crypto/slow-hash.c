@@ -216,26 +216,30 @@ extern void aesb_pseudo_round(const uint8_t *in, uint8_t *out, const uint8_t *ex
   } while (0)
 
 #define VARIANT4_RANDOM_MATH_INIT() \
-  uint32_t r[8]; \
+  v4_reg r[8]; \
   struct V4_Instruction code[256]; \
   int code_size; \
   do if (variant >= 4) \
   { \
-    r[0] = (uint32_t)(state.hs.w[12]); \
-    r[1] = (uint32_t)(state.hs.w[12] >> 32); \
-    r[2] = (uint32_t)(state.hs.w[13]); \
-    r[3] = (uint32_t)(state.hs.w[13] >> 32); \
+    v4_reg* data = (v4_reg*)(state.hs.w + 12); \
+    r[0] = data[0]; \
+    r[1] = data[1]; \
+    r[2] = data[2]; \
+    r[3] = data[3]; \
     code_size = v4_random_math_init(code, height); \
   } while (0)
 
 #define VARIANT4_RANDOM_MATH(a, b, r, _b, _b1) \
   do if (variant >= 4) \
   { \
-    U64(b)[0] ^= (r[0] + r[1]) | ((uint64_t)(r[2] + r[3]) << 32); \
-    r[4] = ((uint32_t*)(a))[0]; \
-    r[5] = ((uint32_t*)(a))[2]; \
-    r[6] = ((uint32_t*)(_b))[0]; \
-    r[7] = ((uint32_t*)(_b1))[0]; \
+    if (sizeof(v4_reg) == sizeof(uint32_t)) \
+      U64(b)[0] ^= (r[0] + r[1]) | ((uint64_t)(r[2] + r[3]) << 32); \
+    else \
+      U64(b)[0] ^= (r[0] + r[1]) ^ (r[2] + r[3]); \
+    r[4] = ((v4_reg*)(a))[0]; \
+    r[5] = ((v4_reg*)(a))[sizeof(uint64_t) / sizeof(v4_reg)]; \
+    r[6] = ((v4_reg*)(_b))[0]; \
+    r[7] = ((v4_reg*)(_b1))[0]; \
     v4_random_math(code, code_size, r); \
   } while (0)
 

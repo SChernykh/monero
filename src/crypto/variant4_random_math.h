@@ -1,6 +1,9 @@
 #ifndef VARIANT4_RANDOM_MATH_H
 #define VARIANT4_RANDOM_MATH_H
 
+// Register size can be configured to either 32 bit (uint32_t) or 64 bit (uint64_t)
+typedef uint32_t v4_reg;
+
 enum V4_Settings
 {
 	// Generate code with latency = 54 cycles, which is equivalent to 18 multiplications
@@ -40,13 +43,18 @@ struct V4_Instruction
 	uint8_t src_index : 3;
 };
 
-static inline void v4_random_math(const struct V4_Instruction* code, int code_size, uint32_t* r)
+static inline void v4_random_math(const struct V4_Instruction* code, int code_size, v4_reg* r)
 {
+	enum
+	{
+		REG_BITS = sizeof(v4_reg) * 8,
+	};
+
 	for (int i = 0; i < code_size; ++i)
 	{
 		struct V4_Instruction op = code[i];
-		const uint32_t dst = r[op.dst_index];
-		const uint32_t src = r[op.src_index];
+		const v4_reg dst = r[op.dst_index];
+		const v4_reg src = r[op.src_index];
 		uint32_t shift;
 
 		switch (op.opcode)
@@ -67,13 +75,13 @@ static inline void v4_random_math(const struct V4_Instruction* code, int code_si
 			break;
 
 		case ROR:
-			shift = src & 31;
-			r[op.dst_index] = (dst >> shift) | (dst << (32 - shift));
+			shift = src % REG_BITS;
+			r[op.dst_index] = (dst >> shift) | (dst << (REG_BITS - shift));
 			break;
 
 		case ROL:
-			shift = src & 31;
-			r[op.dst_index] = (dst << shift) | (dst >> (32 - shift));
+			shift = src % REG_BITS;
+			r[op.dst_index] = (dst << shift) | (dst >> (REG_BITS - shift));
 			break;
 
 		case XOR:
