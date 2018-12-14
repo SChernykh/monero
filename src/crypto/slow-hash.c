@@ -217,8 +217,7 @@ extern void aesb_pseudo_round(const uint8_t *in, uint8_t *out, const uint8_t *ex
 
 #define VARIANT4_RANDOM_MATH_INIT() \
   v4_reg r[8]; \
-  struct V4_Instruction code[256]; \
-  int code_size; \
+  struct V4_Instruction code[TOTAL_LATENCY * ALU_COUNT + 1]; \
   do if (variant >= 4) \
   { \
     v4_reg* data = (v4_reg*)(state.hs.w + 12); \
@@ -226,7 +225,7 @@ extern void aesb_pseudo_round(const uint8_t *in, uint8_t *out, const uint8_t *ex
     r[1] = data[1]; \
     r[2] = data[2]; \
     r[3] = data[3]; \
-    code_size = v4_random_math_init(code, height); \
+    v4_random_math_init(code, height); \
   } while (0)
 
 #define VARIANT4_RANDOM_MATH(a, b, r, _b, _b1) \
@@ -240,7 +239,7 @@ extern void aesb_pseudo_round(const uint8_t *in, uint8_t *out, const uint8_t *ex
     r[5] = ((v4_reg*)(a))[sizeof(uint64_t) / sizeof(v4_reg)]; \
     r[6] = ((v4_reg*)(_b))[0]; \
     r[7] = ((v4_reg*)(_b1))[0]; \
-    v4_random_math(code, code_size, r); \
+    v4_random_math(code, r); \
   } while (0)
 
 
