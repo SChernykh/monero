@@ -6,16 +6,19 @@ typedef uint32_t v4_reg;
 
 enum V4_Settings
 {
-	// Generate code with latency = 54 cycles, which is equivalent to 18 multiplications
-	TOTAL_LATENCY = 18 * 3,
+	// Generate code with minimal theoretical latency = 45 cycles, which is equivalent to 15 multiplications
+	TOTAL_LATENCY = 15 * 3,
+	
+	// Always generate at least 60 instructions
+	NUM_INSTRUCTIONS = 60,
 	
 	// Available ALUs for MUL
 	// Modern CPUs typically have only 1 ALU which can do multiplications
 	ALU_COUNT_MUL = 1,
 
 	// Total available ALUs
-	// Modern CPUs have 3-4 ALUs, but we use only 2 because random math executes together with other main loop code
-	ALU_COUNT = 2,
+	// Modern CPUs have 4 ALUs, but we use only 3 because random math executes together with other main loop code
+	ALU_COUNT = 3,
 };
 
 enum V4_InstructionList
@@ -32,9 +35,6 @@ enum V4_InstructionList
 
 // V4_InstructionCompact is used to generate code from random data
 // Every random sequence of bytes is a valid code
-//
-// Instruction encoding is 1 byte for all instructions except ADD
-// ADD instruction uses second byte for constant "C" in "a+b+C"
 //
 // There are 8 registers in total:
 // - 4 variable registers
@@ -53,22 +53,26 @@ struct V4_Instruction
 	uint8_t opcode;
 	uint8_t dst_index;
 	uint8_t src_index;
-	int8_t C;
+	uint32_t C;
 };
 
 #ifndef FORCEINLINE
 #ifdef __GNUC__
 #define FORCEINLINE __attribute__((always_inline)) inline
-#else
+#elif _MSC_VER
 #define FORCEINLINE __forceinline
+#else
+#define FORCEINLINE inline
 #endif
 #endif
 
 #ifndef UNREACHABLE_CODE
 #ifdef __GNUC__
 #define UNREACHABLE_CODE __builtin_unreachable()
-#else
+#elif _MSC_VER
 #define UNREACHABLE_CODE __assume(false)
+#else
+#define UNREACHABLE_CODE
 #endif
 #endif
 
@@ -134,7 +138,21 @@ static FORCEINLINE void v4_random_math(const struct V4_Instruction* code, v4_reg
 	V4_EXEC(j + 8) \
 	V4_EXEC(j + 9)
 
-	// Generated program can have up to 109 instructions (54*2+1: 54 clock cycles with 2 ALUs running + one final RET instruction)
+	// Generated program can have 60 + a few more (usually 2-3) instructions to achieve required latency
+	// I've checked all block heights < 10,000,000 and here is the distribution of program sizes:
+	//
+	// 60      28495
+	// 61      106077
+	// 62      2455855
+	// 63      5114930
+	// 64      1020868
+	// 65      1109026
+	// 66      151756
+	// 67      8429
+	// 68      4477
+	// 69      87
+
+	// Unroll 70 instructions here
 	V4_EXEC_10(0);		// instructions 0-9
 	V4_EXEC_10(10);		// instructions 10-19
 	V4_EXEC_10(20);		// instructions 20-29
@@ -142,20 +160,35 @@ static FORCEINLINE void v4_random_math(const struct V4_Instruction* code, v4_reg
 	V4_EXEC_10(40);		// instructions 40-49
 	V4_EXEC_10(50);		// instructions 50-59
 	V4_EXEC_10(60);		// instructions 60-69
-	V4_EXEC_10(70);		// instructions 70-79
-	V4_EXEC_10(80);		// instructions 80-89
-	V4_EXEC_10(90);		// instructions 90-99
-	V4_EXEC_10(100);	// instructions 100-109
 
 #undef V4_EXEC_10
 #undef V4_EXEC
 }
 
-// Generates as many random math operations as possible with given latency and ALU restrictions
-static inline void v4_random_math_init(struct V4_Instruction* code, const uint64_t height)
+// If we don't have enough data available, generate more
+static FORCEINLINE void check_data(size_t* data_index, const size_t bytes_needed, char* data, const size_t data_size)
 {
-	// MUL is 3 cycles, all other operations are 1 cycle
-	const int op_latency[V4_INSTRUCTION_COUNT] = { 3, 1, 1, 1, 1, 1 };
+	if (*data_index + bytes_needed > data_size)
+	{
+		hash_extra_blake(data, sizeof(data), data);
+		*data_index = 0;
+	}
+}
+
+// Generates as many random math operations as possible with given latency and ALU restrictions
+static inline int v4_random_math_init(struct V4_Instruction* code, const uint64_t height)
+{
+	// MUL is 3 cycles, 3-way addition and rotations are 2 cycles, SUB/XOR are 1 cycle
+	// These latencies match real-life instruction latencies for Intel CPUs starting from Sandy Bridge and up to Skylake/Coffee lake
+	//
+	// AMD Ryzen has the same latencies except 1-cycle ROR/ROL, so it'll be a bit faster than Intel Sandy Bridge and newer processors
+	// Surprisingly, Intel Nehalem also has 1-cycle ROR/ROL, so it'll also be faster than Intel Sandy Bridge and newer processors
+	// AMD Bulldozer has 4 cycles latency for MUL (slower than Intel) and 1 cycle for ROR/ROL (faster than Intel), so average performance will be the same
+	// Source: https://www.agner.org/optimize/instruction_tables.pdf
+	const int op_latency[V4_INSTRUCTION_COUNT] = { 3, 2, 1, 2, 2, 1 };
+
+	// Instruction latencies for theoretical ASIC implementation
+	const int asic_op_latency[V4_INSTRUCTION_COUNT] = { 3, 1, 1, 1, 1, 1 };
 
 	// Available ALUs for each instruction
 	const int op_ALUs[V4_INSTRUCTION_COUNT] = { ALU_COUNT_MUL, ALU_COUNT, ALU_COUNT, ALU_COUNT, ALU_COUNT, ALU_COUNT };
@@ -166,89 +199,207 @@ static inline void v4_random_math_init(struct V4_Instruction* code, const uint64
 
 	size_t data_index = sizeof(data);
 
-	int latency[8];
-	bool alu_busy[TOTAL_LATENCY][ALU_COUNT];
+	int code_size;
+	do {
+		int latency[8];
+		int asic_latency[8];
 
-	memset(latency, 0, sizeof(latency));
-	memset(alu_busy, 0, sizeof(alu_busy));
+		// Tracks previous instruction and value of the source operand for registers R0-R3 throughout code execution
+		// byte 0: current value of the destination register
+		// byte 1: instruction opcode
+		// byte 2: current value of the source register
+		//
+		// Registers R4-R7 are constant and are threatened as having the same value because when we do
+		// the same operation twice with two constant source registers, it can be optimized into a single operation
+		int inst_data[8] = { 0, 1, 2, 3, -1, -1, -1, -1 };
 
-	int num_retries = 0;
-	int code_size = 0;
+		bool alu_busy[TOTAL_LATENCY + 1][ALU_COUNT];
+		bool is_rotation[V4_INSTRUCTION_COUNT];
+		bool rotated[4];
+		int rotate_count = 0;
 
-	while (((latency[0] < TOTAL_LATENCY) || (latency[1] < TOTAL_LATENCY) || (latency[2] < TOTAL_LATENCY) || (latency[3] < TOTAL_LATENCY)) && (num_retries < 64))
-	{
-		// If we don't have data available, generate more
-		if (data_index >= sizeof(data))
+		memset(latency, 0, sizeof(latency));
+		memset(asic_latency, 0, sizeof(asic_latency));
+		memset(alu_busy, 0, sizeof(alu_busy));
+		memset(is_rotation, 0, sizeof(is_rotation));
+		memset(rotated, 0, sizeof(rotated));
+		is_rotation[ROR] = true;
+		is_rotation[ROL] = true;
+
+		int num_retries = 0;
+		code_size = 0;
+
+		// Generate random code to achieve minimal required latency for our abstract CPU
+		// Try to get this latency for all 4 registers
+		while (((latency[0] < TOTAL_LATENCY) || (latency[1] < TOTAL_LATENCY) || (latency[2] < TOTAL_LATENCY) || (latency[3] < TOTAL_LATENCY)) && (num_retries < 64))
 		{
-			hash_extra_blake(data, sizeof(data), data);
-			data_index = 0;
-		}
-		struct V4_InstructionCompact op = ((struct V4_InstructionCompact*)data)[data_index++];
+			check_data(&data_index, 1, data, sizeof(data));
 
-		// MUL uses opcodes 0-2 (it's 3 times more frequent than other instructions)
-		// ADD, SUB, ROR, ROL, XOR use opcodes 3-7
-		const uint8_t opcode = (op.opcode > 2) ? (op.opcode - 2) : 0;
-		const int a = op.dst_index;
-		int b = op.src_index;
+			struct V4_InstructionCompact op = ((struct V4_InstructionCompact*)data)[data_index++];
 
-		// Make sure we don't do SUB/XOR with the same register
-		if (((opcode == SUB) || (opcode == XOR)) && (a == b))
-		{
-			// a is always < 4, so we don't need to check bounds here
-			b = a + 4;
-			op.src_index = b;
-		}
-
-		// Find which ALU is available (and when) for this instruction
-		int next_latency = (latency[a] > latency[b]) ? latency[a] : latency[b];
-		int alu_index = -1;
-		while ((next_latency < TOTAL_LATENCY) && (alu_index < 0))
-		{
-			for (int i = op_ALUs[opcode] - 1; i >= 0; --i)
+			// MUL = opcodes 0-2
+			// ADD = opcode 3
+			// SUB = opcode 4
+			// ROR/ROL = opcode 5, shift direction is selected randomly
+			// XOR = opcodes 6-7
+			uint8_t opcode = (op.opcode <= 2) ? MUL : (op.opcode - 2);
+			if (op.opcode == 5)
 			{
-				if (!alu_busy[next_latency][i])
+				check_data(&data_index, 1, data, sizeof(data));
+				opcode = (data[data_index++] >= 0) ? ROR : ROL;
+			}
+			else if (op.opcode >= 6)
+			{
+				opcode = XOR;
+			}
+
+			const int a = op.dst_index;
+			int b = op.src_index;
+
+			// Don't do ADD/SUB/XOR with the same register
+			if (((opcode == ADD) || (opcode == SUB) || (opcode == XOR)) && (a == b))
+			{
+				// a is always < 4, so we don't need to check bounds here
+				b = a + 4;
+				op.src_index = b;
+			}
+
+			// Don't do rotation with the same destination twice because it's equal to a single rotation
+			if (is_rotation[opcode] && rotated[a])
+			{
+				continue;
+			}
+
+			// Don't do the same instruction (except MUL) with the same source value twice because all other cases can be optimized:
+			// 2xADD(a, b, C) = ADD(a, b*2, C1+C2), same for SUB and rotations
+			// 2xXOR(a, b) = NOP
+			if ((opcode != MUL) && ((inst_data[a] & 0xFFFF00) == (opcode << 8) + ((inst_data[b] & 255) << 16)))
+			{
+				continue;
+			}
+
+			// Find which ALU is available (and when) for this instruction
+			int next_latency = (latency[a] > latency[b]) ? latency[a] : latency[b];
+			int alu_index = -1;
+			while (next_latency < TOTAL_LATENCY)
+			{
+				for (int i = op_ALUs[opcode] - 1; i >= 0; --i)
 				{
-					alu_index = i;
+					if (!alu_busy[next_latency][i])
+					{
+						// ADD is implemented as two 1-cycle instructions on a real CPU, so do an additional availability check
+						if ((opcode == ADD) && alu_busy[next_latency + 1][i])
+						{
+							continue;
+						}
+
+						// Rotation can only start when previous rotation is finished, so do an additional availability check
+						if (is_rotation[opcode] && (next_latency < rotate_count * op_latency[opcode]))
+						{
+							continue;
+						}
+
+						alu_index = i;
+						break;
+					}
+				}
+				if (alu_index >= 0)
+				{
+					break;
+				}
+				++next_latency;
+			}
+
+			// Don't generate instructions that leave some register unchanged for more than 7 cycles
+			if (next_latency > latency[a] + 7)
+			{
+				continue;
+			}
+
+			next_latency += op_latency[opcode];
+
+			if (next_latency <= TOTAL_LATENCY)
+			{
+				if (is_rotation[opcode])
+				{
+					++rotate_count;
+				}
+
+				// Mark ALU as busy only for the first cycle when it starts executing the instruction because ALUs are fully pipelined
+				alu_busy[next_latency - op_latency[opcode]][alu_index] = true;
+				latency[a] = next_latency;
+
+				// ASIC is supposed to have enough ALUs to run as many independent instructions per cycle as possible, so latency calculation for ASIC is simple
+				asic_latency[a] = ((asic_latency[a] > asic_latency[b]) ? asic_latency[a] : asic_latency[b]) + asic_op_latency[opcode];
+
+				rotated[a] = is_rotation[opcode];
+
+				inst_data[a] = code_size + (opcode << 8) + ((inst_data[b] & 255) << 16);
+
+				code[code_size].opcode = opcode;
+				code[code_size].dst_index = op.dst_index;
+				code[code_size].src_index = op.src_index;
+				code[code_size].C = 0;
+
+				if (opcode == ADD)
+				{
+					// ADD instruction is implemented as two 1-cycle instructions on a real CPU, so mark ALU as busy for the next cycle too
+					alu_busy[next_latency - op_latency[opcode] + 1][alu_index] = true;
+
+					// ADD instruction requires 4 more random bytes for 32-bit constant "C" in "a = a + b + C"
+					check_data(&data_index, sizeof(uint32_t), data, sizeof(data));
+					code[code_size].C = *((uint32_t*)&data[data_index]);
+					data_index += sizeof(uint32_t);
+				}
+
+				++code_size;
+				if (code_size >= NUM_INSTRUCTIONS)
+				{
 					break;
 				}
 			}
-			++next_latency;
-		}
-		next_latency += op_latency[opcode];
-
-		if (next_latency <= TOTAL_LATENCY)
-		{
-			alu_busy[next_latency - op_latency[opcode]][alu_index] = true;
-			latency[a] = next_latency;
-			code[code_size].opcode = opcode;
-			code[code_size].dst_index = op.dst_index;
-			code[code_size].src_index = op.src_index;
-			code[code_size].C = 0;
-
-			// ADD instruction is 2 bytes long. Second byte is a signed constant "C" in "a = a + b + C"
-			if (opcode == ADD)
+			else
 			{
-				// If we don't have data available, generate more
-				if (data_index >= sizeof(data))
-				{
-					hash_extra_blake(data, sizeof(data), data);
-					data_index = 0;
-				}
-				code[code_size].C = (int8_t) data[data_index++];
+				++num_retries;
 			}
+		}
+
+		// ASIC has more execution resources and can extract as much parallelism from the code as possible
+		// We need to add a few more MUL and ROR instructions to achieve minimal required latency for ASIC
+		// Get this latency for at least 1 of the 4 registers
+		const int prev_code_size = code_size;
+		while ((asic_latency[0] < TOTAL_LATENCY) && (asic_latency[1] < TOTAL_LATENCY) && (asic_latency[2] < TOTAL_LATENCY) && (asic_latency[3] < TOTAL_LATENCY))
+		{
+			int min_idx = 0;
+			int max_idx = 0;
+			for (int i = 1; i < 4; ++i)
+			{
+				if (asic_latency[i] < asic_latency[min_idx]) min_idx = i;
+				if (asic_latency[i] > asic_latency[max_idx]) max_idx = i;
+			}
+
+			const uint8_t pattern[3] = { ROR, MUL, MUL };
+			const uint8_t opcode = pattern[(code_size - prev_code_size) % 3];
+			latency[min_idx] = latency[max_idx] + op_latency[opcode];
+			asic_latency[min_idx] = asic_latency[max_idx] + asic_op_latency[opcode];
+
+			code[code_size].opcode = opcode;
+			code[code_size].dst_index = min_idx;
+			code[code_size].src_index = max_idx;
+			code[code_size].C = 0;
 			++code_size;
 		}
-		else
-		{
-			++num_retries;
-		}
-	}
+
+	// There is ~99.8% chance that code_size >= NUM_INSTRUCTIONS here, so second iteration is required rarely
+	}  while (code_size < NUM_INSTRUCTIONS);
 
 	// Add final instruction to stop the interpreter
 	code[code_size].opcode = RET;
 	code[code_size].dst_index = 0;
 	code[code_size].src_index = 0;
 	code[code_size].C = 0;
+
+	return code_size;
 }
 
 #endif
