@@ -40,6 +40,7 @@ set(common_sources
   notify.cpp
   password.cpp
   perf_timer.cpp
+  pruning.cpp
   spawn.cpp
   threadpool.cpp
   updates.cpp
@@ -48,6 +49,10 @@ set(common_sources
 
 if (STACK_TRACE)
   list(APPEND common_sources stack_trace.cpp)
+endif()
+
+if (BACKCOMPAT)
+  list(APPEND common_sources compat/glibc_compat.cpp)
 endif()
 
 set(common_headers)
@@ -65,6 +70,7 @@ set(common_private_headers
   http_connection.h
   notify.h
   pod-class.h
+  pruning.h
   rpc_client.h
   scoped_message_writer.h
   unordered_containers_boost_serialization.h

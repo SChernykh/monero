@@ -34,11 +34,6 @@ if (WIN32 OR STATIC)
   add_definitions(-DMINIUPNP_STATICLIB)
 endif ()
 
-# warnings are cleared only for GCC on Linux
-if (NOT (MINGW OR APPLE OR FREEBSD OR OPENBSD OR DRAGONFLY))
-  add_compile_options("${WARNINGS_AS_ERRORS_FLAG}") # applies only to targets that follow
-endif()
-
 function (monero_private_headers group)
   source_group("${group}\\Private"
     FILES
@@ -115,6 +110,7 @@ add_subdirectory(checkpoints)
 add_subdirectory(cryptonote_basic)
 add_subdirectory(cryptonote_core)
 add_subdirectory(multisig)
+add_subdirectory(net)
 if(NOT IOS)
   add_subdirectory(blockchain_db)
 endif()

@@ -62,9 +62,11 @@ set(unit_tests_sources
   mul_div.cpp
   multiexp.cpp
   multisig.cpp
+  net.cpp
   notify.cpp
   output_distribution.cpp
   parse_amount.cpp
+  pruning.cpp
   random.cpp
   serialization.cpp
   sha256.cpp
@@ -99,6 +101,7 @@ target_link_libraries(unit_tests
     cryptonote_core
     blockchain_db
     rpc
+    net
     serialization
     wallet
     p2p
