@@ -220,8 +220,7 @@ namespace
     namespace adapt = boost::adaptors;
     const auto to_minimal_tx = [](const cryptonote::txpool_event& event)
     {
-      const uint64_t fee = (event.tx.rct_signatures.type != rct::RCTTypeNull) ? event.tx.rct_signatures.txnFee : 0;
-      return minimal_txpool{event.tx, event.hash, event.blob_size, event.weight, fee};
+      return minimal_txpool{event.tx, event.hash, event.blob_size, event.weight, cryptonote::get_tx_fee(event.tx)};
     };
     json_pub(buf, (txes | adapt::filtered(is_valid{}) | adapt::transformed(to_minimal_tx)));
   }
