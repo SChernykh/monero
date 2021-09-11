@@ -4408,7 +4408,7 @@ leave:
   get_difficulty_for_next_block(); // just to cache it
   invalidate_block_template_cache();
 
-  send_miner_notifications(id, m_db->get_block_already_generated_coins(m_db->height() - 1));
+  send_miner_notifications(id, already_generated_coins);
 
   for (const auto& notifier: m_block_notifiers)
     notifier(new_height - 1, {std::addressof(bl), 1});

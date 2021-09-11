@@ -920,12 +920,10 @@ namespace cryptonote
     CRITICAL_REGION_LOCAL1(m_blockchain);
     const relay_category category = include_sensitive ? relay_category::all : relay_category::broadcasted;
     backlog.reserve(m_blockchain.get_txpool_tx_count(include_sensitive));
-    cryptonote::blobdata tmp_blob;
     txpool_tx_meta_t tmp_meta;
-    m_blockchain.for_all_txpool_txes([this, &backlog, &tmp_blob, &tmp_meta](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref *bd){
-      tmp_blob = m_blockchain.get_txpool_tx_blob(txid, relay_category::all);
+    m_blockchain.for_all_txpool_txes([this, &backlog, &tmp_meta](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref *bd){
       transaction tx;
-      if (!(meta.pruned ? parse_and_validate_tx_base_from_blob(tmp_blob, tx) : parse_and_validate_tx_from_blob(tmp_blob, tx)))
+      if (!(meta.pruned ? parse_and_validate_tx_base_from_blob(*bd, tx) : parse_and_validate_tx_from_blob(*bd, tx)))
       {
         MERROR("Failed to parse tx from txpool");
         // continue
@@ -935,11 +933,11 @@ namespace cryptonote
 
       tmp_meta = meta;
 
-      if (is_transaction_ready_to_go(tmp_meta, txid, tmp_blob, tx))
+      if (is_transaction_ready_to_go(tmp_meta, txid, *bd, tx))
         backlog.push_back({txid, meta.weight, meta.fee});
 
       return true;
-    }, false, category);
+    }, true, category);
   }
   //------------------------------------------------------------------
   void tx_memory_pool::get_transaction_stats(struct txpool_stats& stats, bool include_sensitive) const
@@ -1252,11 +1250,11 @@ namespace cryptonote
     return ret;
   }
   //---------------------------------------------------------------------------------
-  bool tx_memory_pool::is_transaction_ready_to_go(txpool_tx_meta_t& txd, const crypto::hash &txid, const cryptonote::blobdata &txblob, transaction &tx) const
+  bool tx_memory_pool::is_transaction_ready_to_go(txpool_tx_meta_t& txd, const crypto::hash &txid, const cryptonote::blobdata_ref& txblob, transaction &tx) const
   {
-    struct transction_parser
+    struct transaction_parser
     {
-      transction_parser(const cryptonote::blobdata &txblob, const crypto::hash &txid, transaction &tx): txblob(txblob), txid(txid), tx(tx), parsed(false) {}
+      transaction_parser(const cryptonote::blobdata_ref &txblob, const crypto::hash &txid, transaction &tx): txblob(txblob), txid(txid), tx(tx), parsed(false) {}
       cryptonote::transaction &operator()()
       {
         if (!parsed)
@@ -1268,7 +1266,7 @@ namespace cryptonote
         }
         return tx;
       }
-      const cryptonote::blobdata &txblob;
+      const cryptonote::blobdata_ref &txblob;
       const crypto::hash &txid;
       transaction &tx;
       bool parsed;
@@ -1317,6 +1315,11 @@ namespace cryptonote
 
     //transaction is ok.
     return true;
+  }
+  //---------------------------------------------------------------------------------
+  bool tx_memory_pool::is_transaction_ready_to_go(txpool_tx_meta_t& txd, const crypto::hash &txid, const cryptonote::blobdata& txblob, transaction &tx) const
+  {
+    return is_transaction_ready_to_go(txd, txid, cryptonote::blobdata_ref{txblob.data(), txblob.size()}, tx);
   }
   //---------------------------------------------------------------------------------
   bool tx_memory_pool::have_key_images(const std::unordered_set<crypto::key_image>& k_images, const transaction_prefix& tx)
