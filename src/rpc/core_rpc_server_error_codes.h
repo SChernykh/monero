@@ -38,6 +38,7 @@
 #define CORE_RPC_ERROR_CODE_INTERNAL_ERROR        -5
 #define CORE_RPC_ERROR_CODE_WRONG_BLOCKBLOB       -6
 #define CORE_RPC_ERROR_CODE_BLOCK_NOT_ACCEPTED    -7
+#define CORE_RPC_ERROR_CODE_DUPLICATE_BLOCKBLOB   -8
 #define CORE_RPC_ERROR_CODE_CORE_BUSY             -9
 #define CORE_RPC_ERROR_CODE_WRONG_BLOCKBLOB_SIZE  -10
 #define CORE_RPC_ERROR_CODE_UNSUPPORTED_RPC       -11
@@ -63,6 +64,7 @@ static inline const char *get_rpc_server_error_message(int64_t code)
     case CORE_RPC_ERROR_CODE_INTERNAL_ERROR: return "Internal error";
     case CORE_RPC_ERROR_CODE_WRONG_BLOCKBLOB: return "Wrong block blob";
     case CORE_RPC_ERROR_CODE_BLOCK_NOT_ACCEPTED: return "Block not accepted";
+    case CORE_RPC_ERROR_CODE_DUPLICATE_BLOCKBLOB: return "Duplicate block blob";
     case CORE_RPC_ERROR_CODE_CORE_BUSY: return "Core is busy";
     case CORE_RPC_ERROR_CODE_WRONG_BLOCKBLOB_SIZE: return "Wrong block blob size";
     case CORE_RPC_ERROR_CODE_UNSUPPORTED_RPC: return "Unsupported RPC";
