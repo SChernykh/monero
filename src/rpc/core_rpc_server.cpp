@@ -2175,6 +2175,27 @@ namespace cryptonote
       return false;
     }
     
+    // Fix from Boolberry neglects to check block
+    // size, do that with the function below
+    if(!m_core.check_incoming_block_size(blockblob))
+    {
+      error_resp.code = CORE_RPC_ERROR_CODE_WRONG_BLOCKBLOB_SIZE;
+      error_resp.message = "Block size is too big, rejecting block";
+      return false;
+    }
+
+    // Ignore duplicate block submissions
+    {
+      boost::unique_lock<boost::mutex> lock(m_submitblock_blockblob_mutex);
+      if (blockblob == m_submitblock_blockblob)
+      {
+        error_resp.code = CORE_RPC_ERROR_CODE_DUPLICATE_BLOCKBLOB;
+        error_resp.message = "Duplicate block blob";
+        return false;
+      }
+      m_submitblock_blockblob = blockblob;
+    }
+
     // Fixing of high orphan issue for most pools
     // Thanks Boolberry!
     block b;
@@ -2183,15 +2204,6 @@ namespace cryptonote
     {
       error_resp.code = CORE_RPC_ERROR_CODE_WRONG_BLOCKBLOB;
       error_resp.message = "Wrong block blob";
-      return false;
-    }
-
-    // Fix from Boolberry neglects to check block
-    // size, do that with the function below
-    if(!m_core.check_incoming_block_size(blockblob))
-    {
-      error_resp.code = CORE_RPC_ERROR_CODE_WRONG_BLOCKBLOB_SIZE;
-      error_resp.message = "Block bloc size is too big, rejecting block";
       return false;
     }
 
