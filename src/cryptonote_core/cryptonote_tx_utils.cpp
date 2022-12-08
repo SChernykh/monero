@@ -30,14 +30,11 @@
 
 #include <unordered_set>
 #include <random>
-#include <thread>
 #include "include_base_utils.h"
 #include "string_tools.h"
 using namespace epee;
 
 #include "common/apply_permutation.h"
-#include "profile_tools.h"
-#include "common/perf_timer.h"
 #include "cryptonote_tx_utils.h"
 #include "cryptonote_config.h"
 #include "blockchain.h"
@@ -675,13 +672,7 @@ namespace cryptonote
   void get_altblock_longhash(const block& b, crypto::hash& res, const uint64_t main_height, const uint64_t height, const uint64_t seed_height, const crypto::hash& seed_hash)
   {
     blobdata bd = get_block_hashing_blob(b);
-    TIME_MEASURE_NS_START(rx_slow_hash_time);
     rx_slow_hash(main_height, seed_height, seed_hash.data, bd.data(), bd.size(), res.data, 0, 1);
-    TIME_MEASURE_NS_FINISH(rx_slow_hash_time);
-    if (rx_slow_hash_time > 3000000)
-    {
-      MGINFO_YELLOW("rx_slow_hash (alt) took " << rx_slow_hash_time * 1e-6 << " ms (height " << height << ")");
-    }
   }
 
   bool get_block_longhash(const Blockchain *pbc, const blobdata& bd, crypto::hash& res, const uint64_t height, const int major_version, const crypto::hash *seed_hash, const int miners)
@@ -708,13 +699,7 @@ namespace cryptonote
         seed_height = 0;
         main_height = 0;
       }
-      TIME_MEASURE_NS_START(rx_slow_hash_time);
-      rx_slow_hash(main_height, seed_height, hash.data, bd.data(), bd.size(), res.data, seed_hash ? 0 : (miners ? miners : std::thread::hardware_concurrency()), !!seed_hash);
-      TIME_MEASURE_NS_FINISH(rx_slow_hash_time);
-      if (!miners && (rx_slow_hash_time > 3000000))
-      {
-        MGINFO_YELLOW("rx_slow_hash took " << rx_slow_hash_time * 1e-6 << " ms (height " << height << ")");
-      }
+      rx_slow_hash(main_height, seed_height, hash.data, bd.data(), bd.size(), res.data, seed_hash ? 0 : miners, !!seed_hash);
     } else {
       const int pow_variant = major_version >= 7 ? major_version - 6 : 0;
       crypto::cn_slow_hash(bd.data(), bd.size(), res, pow_variant, height);
