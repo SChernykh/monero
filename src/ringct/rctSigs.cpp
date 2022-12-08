@@ -39,6 +39,9 @@
 #include "cryptonote_basic/cryptonote_format_utils.h"
 #include "cryptonote_config.h"
 
+#include <unordered_set>
+#include <mutex>
+
 using namespace crypto;
 using namespace std;
 
@@ -1518,7 +1521,7 @@ namespace rct {
 
     //ver RingCT simple
     //assumes only post-rct style inputs (at least for max anonymity)
-    bool verRctNonSemanticsSimple(const rctSig & rv) {
+    static bool verRctNonSemanticsSimple_internal(const rctSig & rv) {
       try
       {
         PERF_TIMER(verRctNonSemanticsSimple);
@@ -1576,6 +1579,61 @@ namespace rct {
         LOG_PRINT_L1("Error in verRctNonSemanticsSimple, but not an actual exception");
         return false;
       }
+    }
+
+    static struct SRctCache
+    {
+      mutable std::mutex m;
+      std::unordered_set<crypto::hash> hashes;
+      crypto::hash buf[8192] = {};
+      uint32_t counter = 0;
+
+      template<typename T>
+      static crypto::hash get_hash(const T& data)
+      {
+        std::stringstream ss;
+        binary_archive<true> ar(ss);
+        ::do_serialize(ar, const_cast<T&>(data));
+
+        crypto::hash h;
+        cryptonote::get_blob_hash(ss.str(), h);
+
+        return h;
+      }
+
+      void add(const crypto::hash& h)
+      {
+        std::lock_guard<std::mutex> lock(m);
+        if (hashes.insert(h).second)
+        {
+          crypto::hash& old_hash = buf[counter++ % 8192];
+          hashes.erase(old_hash);
+          old_hash = h;
+        }
+      }
+
+      bool find(const crypto::hash& h) const
+      {
+        std::lock_guard<std::mutex> lock(m);
+        return (hashes.find(h) != hashes.end());
+      }
+    } rct_cache;
+
+    bool verRctNonSemanticsSimple(const rctSig & rv)
+    {
+      // Don't cache older (or newer) rctSig types
+      if (rv.type != RCTTypeCLSAG && rv.type != RCTTypeBulletproofPlus)
+        return verRctNonSemanticsSimple_internal(rv);
+
+      const crypto::hash h = SRctCache::get_hash(rv);
+      if (rct_cache.find(h))
+        return true;
+
+      const bool res = verRctNonSemanticsSimple_internal(rv);
+      if (res)
+        rct_cache.add(h);
+
+      return res;
     }
 
     //RingCT protocol
