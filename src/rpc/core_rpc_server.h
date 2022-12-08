@@ -304,6 +304,9 @@ private:
     std::unique_ptr<rpc_payment> m_rpc_payment;
     bool disable_rpc_ban;
     bool m_rpc_payment_allow_free_loopback;
+
+    boost::mutex m_submitblock_blockblob_mutex;
+    cryptonote::blobdata m_submitblock_blockblob;
   };
 }
 
