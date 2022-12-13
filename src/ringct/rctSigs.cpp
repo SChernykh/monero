@@ -1522,7 +1522,7 @@ namespace rct {
 
     //ver RingCT simple
     //assumes only post-rct style inputs (at least for max anonymity)
-    static bool verRctNonSemanticsSimple_internal(const rctSig & rv) {
+    bool verRctNonSemanticsSimple(const rctSig & rv) {
       try
       {
         PERF_TIMER(verRctNonSemanticsSimple);
