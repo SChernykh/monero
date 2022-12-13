@@ -458,9 +458,12 @@ bool Blockchain::init(BlockchainDB* db, const network_type nettype, bool offline
       return false;
   }
 
-  const crypto::hash seedhash = get_block_id_by_height(crypto::rx_seedheight(m_db->height()));
-  if (seedhash != crypto::null_hash)
-    rx_set_main_seedhash(seedhash.data, std::thread::hardware_concurrency());
+  if (m_hardfork->get_current_version() >= RX_BLOCK_VERSION)
+  {
+    const crypto::hash seedhash = get_block_id_by_height(crypto::rx_seedheight(m_db->height()));
+    if (seedhash != crypto::null_hash)
+      rx_set_main_seedhash(seedhash.data, tools::get_max_concurrency());
+  }
 
   return true;
 }
@@ -577,8 +580,11 @@ void Blockchain::pop_blocks(uint64_t nblocks)
   if (stop_batch)
     m_db->batch_stop();
 
-  const crypto::hash seedhash = get_block_id_by_height(crypto::rx_seedheight(m_db->height()));
-  rx_set_main_seedhash(seedhash.data, std::thread::hardware_concurrency());
+  if (m_hardfork->get_current_version() >= RX_BLOCK_VERSION)
+  {
+    const crypto::hash seedhash = get_block_id_by_height(crypto::rx_seedheight(m_db->height()));
+    rx_set_main_seedhash(seedhash.data, tools::get_max_concurrency());
+  }
 }
 //------------------------------------------------------------------
 // This function tells BlockchainDB to remove the top block from the
@@ -1273,7 +1279,8 @@ bool Blockchain::switch_to_alternative_blockchain(std::list<block_extended_info>
     }
   }
 
-  rx_set_main_seedhash(seedhash.data, std::thread::hardware_concurrency());
+  if (m_hardfork->get_current_version() >= RX_BLOCK_VERSION)
+    rx_set_main_seedhash(seedhash.data, tools::get_max_concurrency());
 
   MGINFO_GREEN("REORGANIZE SUCCESS! on height: " << split_height << ", new blockchain size: " << m_db->height());
   return true;
@@ -4571,7 +4578,9 @@ leave:
   for (const auto& notifier: m_block_notifiers)
     notifier(new_height - 1, {std::addressof(bl), 1});
 
-  rx_set_main_seedhash(seedhash.data, std::thread::hardware_concurrency());
+  if (m_hardfork->get_current_version() >= RX_BLOCK_VERSION)
+    rx_set_main_seedhash(seedhash.data, tools::get_max_concurrency());
+
   return true;
 }
 //------------------------------------------------------------------

@@ -49,11 +49,13 @@ static CTHR_RWLOCK_TYPE main_cache_lock = CTHR_RWLOCK_INIT;
 static randomx_dataset *main_dataset = NULL;
 static randomx_cache *main_cache = NULL;
 static char main_seedhash[HASH_SIZE];
+static int main_seedhash_set = 0;
 
 static CTHR_RWLOCK_TYPE secondary_cache_lock = CTHR_RWLOCK_INIT;
 
 static randomx_cache *secondary_cache = NULL;
 static char secondary_seedhash[HASH_SIZE];
+static int secondary_seedhash_set = 0;
 
 #if defined(_MSC_VER)
 #define THREADV __declspec(thread)
@@ -67,8 +69,8 @@ static THREADV randomx_vm *secondary_vm_light = NULL;
 
 static THREADV uint32_t miner_thread = 0;
 
-static bool is_main(const char* seedhash) { return (memcmp(seedhash, main_seedhash, HASH_SIZE) == 0); }
-static bool is_secondary(const char* seedhash) { return (memcmp(seedhash, secondary_seedhash, HASH_SIZE) == 0); }
+static bool is_main(const char* seedhash) { return main_seedhash_set && (memcmp(seedhash, main_seedhash, HASH_SIZE) == 0); }
+static bool is_secondary(const char* seedhash) { return secondary_seedhash_set && (memcmp(seedhash, secondary_seedhash, HASH_SIZE) == 0); }
 
 static void local_abort(const char *msg)
 {
@@ -348,6 +350,7 @@ static CTHR_THREAD_RTYPE rx_set_main_seedhash_thread(void *arg) {
     CTHR_THREAD_RETURN;
   }
   memcpy(main_seedhash, info->seedhash, HASH_SIZE);
+  main_seedhash_set = 1;
 
   char buf[HASH_SIZE * 2 + 1];
   hash2hex(main_seedhash, buf);
@@ -438,6 +441,7 @@ void rx_slow_hash(const char *seedhash, const void *data, size_t length, char *r
       randomx_init_cache(secondary_cache, seedhash, HASH_SIZE);
       minfo(RX_LOGCAT, "RandomX secondary cache updated");
       memcpy(secondary_seedhash, seedhash, HASH_SIZE);
+      secondary_seedhash_set = 1;
     }
     CTHR_RWLOCK_UNLOCK_WRITE(secondary_cache_lock);
   }
@@ -464,6 +468,7 @@ void rx_slow_hash(const char *seedhash, const void *data, size_t length, char *r
     randomx_init_cache(secondary_cache, seedhash, HASH_SIZE);
     minfo(RX_LOGCAT, "RandomX secondary cache updated");
     memcpy(secondary_seedhash, seedhash, HASH_SIZE);
+    secondary_seedhash_set = 1;
   }
   rx_init_light_vm(flags, &secondary_vm_light, secondary_cache);
   randomx_calculate_hash(secondary_vm_light, data, length, result_hash);
