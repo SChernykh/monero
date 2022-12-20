@@ -60,6 +60,6 @@ namespace tools
     mutable std::mutex m;
     std::unordered_set<T> data;
     T buf[MAX_SIZE] = {};
-    uint64_t counter = 0;
+    size_t counter = 0;
   };
 }
