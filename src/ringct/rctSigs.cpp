@@ -1579,8 +1579,10 @@ namespace rct {
       }
     }
 
-    bool verRctNonSemanticsSimpleCached(const rctSig & rv)
+    bool verRctNonSemanticsSimpleCached(cryptonote::transaction & tx)
     {
+      rctSig & rv = tx.rct_signatures;
+
       // Hello future Monero dev! If you got this assert, read the following carefully:
       //
       // RCT cache assumes that this function will serialize and hash all rv's fields used for RingCT verification
@@ -1598,7 +1600,10 @@ namespace rct {
       std::stringstream ss;
       binary_archive<true> ar(ss);
 
-      ::do_serialize(ar, const_cast<rctSig&>(rv));
+      crypto::hash tx_hash = cryptonote::get_transaction_hash(tx);
+
+      ::do_serialize(ar, tx_hash);
+      ::do_serialize(ar, rv);
 
       crypto::hash h;
       cryptonote::get_blob_hash(ss.str(), h);
