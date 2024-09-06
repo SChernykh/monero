@@ -5466,7 +5466,8 @@ void Blockchain::cancel()
 }
 
 #if defined(PER_BLOCK_CHECKPOINT)
-static const char expected_block_hashes_hash[] = "8ada865350270fd008397684d978dac75ea4029a8a1ffcaa9975c43be119ec19";
+static const char expected_block_hashes_hash_mainnet[] = "8ada865350270fd008397684d978dac75ea4029a8a1ffcaa9975c43be119ec19";
+static const char expected_block_hashes_hash_testnet[] = "fcb529229fccfe219360909dbfbba1210d0f461623bb3ec320661a04b63b5129";
 void Blockchain::load_compiled_in_block_hashes(const GetCheckpointsCallback& get_checkpoints)
 {
   if (get_checkpoints == nullptr || !m_fast_sync)
@@ -5477,7 +5478,7 @@ void Blockchain::load_compiled_in_block_hashes(const GetCheckpointsCallback& get
   if (!checkpoints.empty())
   {
     MINFO("Loading precomputed blocks (" << checkpoints.size() << " bytes)");
-    if (m_nettype == MAINNET)
+    if ((m_nettype == MAINNET) || (m_nettype == TESTNET))
     {
       // first check hash
       crypto::hash hash;
@@ -5486,6 +5487,9 @@ void Blockchain::load_compiled_in_block_hashes(const GetCheckpointsCallback& get
         MERROR("Failed to hash precomputed blocks data");
         return;
       }
+
+      const char* expected_block_hashes_hash = (m_nettype == MAINNET) ? expected_block_hashes_hash_mainnet : expected_block_hashes_hash_testnet;
+
       MINFO("precomputed blocks hash: " << hash << ", expected " << expected_block_hashes_hash);
       cryptonote::blobdata expected_hash_data;
       if (!epee::string_tools::parse_hexstr_to_binbuff(std::string(expected_block_hashes_hash), expected_hash_data) || expected_hash_data.size() != sizeof(crypto::hash))
