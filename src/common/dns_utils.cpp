@@ -29,7 +29,7 @@
 #include "common/dns_utils.h"
 // check local first (in the event of static or in-source compilation of libunbound)
 #include "misc_language.h"
-#include "unbound.h"
+#include <unbound.h>
 
 #include <deque>
 #include <set>

@@ -40,7 +40,10 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include "common/apply_permutation.h"
 #include "transport.hpp"
+
+#ifndef __cppcheck__
 #include "messages/messages-common.pb.h"
+#endif
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "device.trezor.transport"

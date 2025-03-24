@@ -48,10 +48,12 @@
 #include "trezor_defs.hpp"
 #include "messages_map.hpp"
 
+#ifndef __cppcheck__
 #include "messages/messages.pb.h"
 #include "messages/messages-common.pb.h"
 #include "messages/messages-management.pb.h"
 #include "messages/messages-monero.pb.h"
+#endif
 
 namespace hw {
 namespace trezor {

@@ -28,6 +28,8 @@
 //
 
 #include "messages_map.hpp"
+
+#ifndef __cppcheck__
 #include "messages/messages.pb.h"
 #include "messages/messages-common.pb.h"
 #include "messages/messages-management.pb.h"
@@ -35,6 +37,7 @@
 
 #ifdef WITH_TREZOR_DEBUGGING
 #include "messages/messages-debug.pb.h"
+#endif
 #endif
 
 using namespace std;

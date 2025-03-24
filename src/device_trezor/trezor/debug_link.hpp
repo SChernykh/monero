@@ -31,7 +31,10 @@
 #define MONERO_DEBUG_LINK_H
 
 #include "transport.hpp"
+
+#ifndef __cppcheck__
 #include "messages/messages-debug.pb.h"
+#endif
 
 
 namespace hw {

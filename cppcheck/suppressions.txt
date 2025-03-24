@@ -1,0 +1,5 @@
+unmatchedSuppression
+missingIncludeSystem
+unusedFunction
+useStlAlgorithm
+uninitMemberVar

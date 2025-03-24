@@ -42,13 +42,15 @@
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/generated_enum_reflection.h>
-#include "google/protobuf/descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 
 #ifdef PROTOBUF_HAS_ABSEIL
 #include <absl/strings/string_view.h>
 #endif
 
+#ifndef __cppcheck__
 #include "messages/messages.pb.h"
+#endif
 
 namespace hw {
 namespace trezor {

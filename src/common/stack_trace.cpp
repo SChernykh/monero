@@ -98,7 +98,7 @@ void CXA_THROW(void *ex, CXA_THROW_INFO_T *info, void (*dest)(void*))
 
 #ifndef STATICLIB
 #ifndef __clang__ // for GCC the attr can't be applied in typedef like for clang
-  __attribute__((noreturn))
+  //__attribute__((noreturn))
 #endif // !__clang__
    cxa_throw_t *__real___cxa_throw = (cxa_throw_t*)dlsym(RTLD_NEXT, "__cxa_throw");
 #endif // !STATICLIB

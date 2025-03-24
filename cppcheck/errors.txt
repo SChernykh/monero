@@ -1,0 +1,91 @@
+contrib/epee/src/byte_slice.cpp:280:ignoredReturnValue Return value of function buf.release() is not used.
+external/easylogging++/easylogging++.h:1389:pureVirtualCall Call of pure virtual function 'unregisterAll' in move constructor.
+external/easylogging++/easylogging++.h:2015:derefInvalidIteratorRedundantCheck Either the condition 'it==confMap->end()' is redundant or there is possible dereference of an invalid iterator: it.
+external/easylogging++/easylogging++.h:2033:derefInvalidIteratorRedundantCheck Either the condition 'it==confMap->end()' is redundant or there is possible dereference of an invalid iterator: it.
+src/common/dns_utils.cpp:227:noCopyConstructor Class 'DNSResolver' does not have a copy constructor which is recommended since it has dynamic memory/resource allocation(s).
+src/common/dns_utils.cpp:227:noOperatorEq Class 'DNSResolver' does not have a operator= which is recommended since it has dynamic memory/resource allocation(s).
+src/common/dns_utils.cpp:209:noCopyConstructor Class 'string_copy' does not have a copy constructor which is recommended since it has dynamic memory/resource allocation(s).
+src/common/dns_utils.cpp:209:noOperatorEq Class 'string_copy' does not have a operator= which is recommended since it has dynamic memory/resource allocation(s).
+contrib/epee/src/net_ssl.cpp:792:identicalConditionAfterEarlyExit Identical condition and return expression 'error', return value is always 0
+src/crypto/rx-slow-hash.c:316:nullPointerOutOfMemory If memory allocation fails, then there is a possible null pointer dereference: si
+src/crypto/rx-slow-hash.c:317:nullPointerOutOfMemory If memory allocation fails, then there is a possible null pointer dereference: si
+src/crypto/rx-slow-hash.c:318:nullPointerOutOfMemory If memory allocation fails, then there is a possible null pointer dereference: si
+src/crypto/rx-slow-hash.c:322:nullPointerOutOfMemory If memory allocation fails, then there is a possible null pointer dereference: si
+src/crypto/rx-slow-hash.c:323:nullPointerOutOfMemory If memory allocation fails, then there is a possible null pointer dereference: si
+src/crypto/rx-slow-hash.c:324:nullPointerOutOfMemory If memory allocation fails, then there is a possible null pointer dereference: si
+src/crypto/rx-slow-hash.c:398:nullPointerOutOfMemory If memory allocation fails, then there is a possible null pointer dereference: info
+src/crypto/rx-slow-hash.c:399:nullPointerOutOfMemory If memory allocation fails, then there is a possible null pointer dereference: info
+src/ringct/rctTypes.cpp:107:invalidPrintfArgType_sint %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'.
+src/cryptonote_basic/cryptonote_basic.h:417:duplInheritedMember The class 'transaction' defines member function with name 'set_null' also defined in its parent class 'transaction_prefix'.
+src/cryptonote_basic/connection_context.cpp:90:containerOutOfBounds Either the condition 'm_expected_heights.size()<difference' is redundant or 'difference' can have the value m_expected_heights.size(). Expression 'm_expected_heights[difference]' causes access out of bounds.
+src/cryptonote_basic/cryptonote_format_utils.cpp:1356:legacyUninitvar Uninitialized variable: ignored_blob_size
+src/cryptonote_core/tx_verification_utils.cpp:349:internalAstError Syntax Error: AST broken, 'ps' doesn't have a parent.
+src/crypto/blake256.c:218:uninitvar Uninitialized variable: msglen
+src/ringct/rctSigs.cpp:451:uninitvar Uninitialized variable: c
+src/net/zmq.cpp:183:ignoredReturnValue Return value of function buffer.release() is not used.
+contrib/epee/include/rolling_median.h:146:nullPointerOutOfMemory If memory allocation fails, then there is a possible null pointer dereference: data
+contrib/epee/include/rolling_median.h:136:nullPointerArithmeticOutOfMemory If memory allocation fails: pointer addition with NULL pointer.
+contrib/epee/include/rolling_median.h:147:nullPointerArithmeticOutOfMemory If memory allocation fails: pointer addition with NULL pointer.
+src/blockchain_db/blockchain_db.cpp:223:uninitvar Uninitialized variable: tx_prunable_hash
+src/cryptonote_core/tx_pool.cpp:251:identicalInnerCondition Identical inner 'if' condition is always true.
+src/wallet/wallet_errors.h:190:duplInheritedMember The struct 'unexpected_txin_type' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: runtime_error >'.
+src/wallet/wallet_errors.h:273:duplInheritedMember The struct 'file_error_base' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:291:duplInheritedMember The struct 'invalid_password' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:300:duplInheritedMember The struct 'invalid_priority' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:310:duplInheritedMember The struct 'invalid_multisig_seed' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:320:duplInheritedMember The struct 'invalid_spend_key' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:331:duplInheritedMember The struct 'invalid_pregenerated_random' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:380:duplInheritedMember The struct 'acc_outs_lookup_error' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:404:duplInheritedMember The struct 'block_parse_error' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:426:duplInheritedMember The struct 'tx_parse_error' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:439:duplInheritedMember The struct 'get_tx_pool_error' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:449:duplInheritedMember The struct 'out_of_hashchain_bounds_error' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:459:duplInheritedMember The struct 'reorg_depth_error' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:469:duplInheritedMember The struct 'incorrect_fork_version' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:503:duplInheritedMember The struct 'not_enough_unlocked_money' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:529:duplInheritedMember The struct 'not_enough_money' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:557:duplInheritedMember The struct 'tx_not_possible' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:587:duplInheritedMember The struct 'not_enough_outs_to_mix' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:624:duplInheritedMember The struct 'tx_not_constructed' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:677:duplInheritedMember The struct 'tx_rejected' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:714:duplInheritedMember The struct 'tx_sum_overflow' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:757:duplInheritedMember The struct 'tx_too_big' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:815:duplInheritedMember The struct 'wallet_rpc_error' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/wallet/wallet_errors.h:918:duplInheritedMember The struct 'wallet_files_doesnt_correspond' defines member function with name 'to_string' also defined in its parent struct 'wallet_error_base < std :: logic_error >'.
+src/blockchain_db/lmdb/db_lmdb.cpp:5075:danglingTemporaryLifetime Using object that is a temporary.
+src/blockchain_db/lmdb/db_lmdb.cpp:5103:danglingTemporaryLifetime Using object that is a temporary.
+src/blockchain_db/lmdb/db_lmdb.cpp:5118:danglingTemporaryLifetime Using object that is a temporary.
+src/blockchain_db/lmdb/db_lmdb.cpp:1303:throwInNoexceptFunction Exception thrown in function declared not to throw exceptions.
+src/blockchain_db/lmdb/db_lmdb.cpp:2591:uninitvar Uninitialized variable: v.mv_data
+src/blockchain_db/lmdb/db_lmdb.cpp:3399:uninitvar Uninitialized variable: result.mv_data
+contrib/epee/include/net/levin_protocol_handler_async.h:64:invalidPrintfArgType_uint %u in format string (no. 1) requires 'unsigned int' but the argument type is 'signed int'.
+src/cryptonote_protocol/levin_notify.cpp:207:accessMoved Access of moved variable 'txs'.
+src/blockchain_utilities/blockchain_prune.cpp:172:uninitvar Uninitialized variable: txn1
+src/blockchain_utilities/blockchain_prune.cpp:173:uninitvar Uninitialized variable: txn0
+src/blockchain_utilities/blockchain_prune.cpp:267:uninitvar Uninitialized variable: txn1
+src/blockchain_utilities/blockchain_prune.cpp:268:uninitvar Uninitialized variable: txn0
+src/device_trezor/device_trezor.cpp:136:identicalConditionAfterEarlyExit Identical condition '!m_live_refresh_in_progress', second condition is always false
+src/simplewallet/simplewallet.cpp:4939:nullPointerRedundantCheck Either the condition '!m_wallet' is redundant or there is possible null pointer dereference: m_wallet.
+src/simplewallet/simplewallet.cpp:8766:incorrectStringCompare String literal "with_keys" doesn't match length argument for substr().
+src/daemon/rpc_command_executor.cpp:168:noCopyConstructor Class 't_rpc_command_executor' does not have a copy constructor which is recommended since it has dynamic memory/resource allocation(s).
+src/daemon/rpc_command_executor.cpp:168:noOperatorEq Class 't_rpc_command_executor' does not have a operator= which is recommended since it has dynamic memory/resource allocation(s).
+src/daemon/daemon.cpp:179:operatorEqVarError Member variable 't_daemon::public_rpc_port' is not assigned a value in 't_daemon::operator='.
+src/wallet/wallet_rpc_server.cpp:2056:uninitStructMember Uninitialized struct member: rpc_payment.m_tx_hash
+src/wallet/wallet_rpc_server.cpp:2056:uninitStructMember Uninitialized struct member: rpc_payment.m_amount
+src/wallet/wallet_rpc_server.cpp:2056:uninitStructMember Uninitialized struct member: rpc_payment.m_fee
+src/wallet/wallet_rpc_server.cpp:2056:uninitStructMember Uninitialized struct member: rpc_payment.m_block_height
+src/wallet/wallet_rpc_server.cpp:2056:uninitStructMember Uninitialized struct member: rpc_payment.m_unlock_time
+src/wallet/wallet_rpc_server.cpp:2056:uninitStructMember Uninitialized struct member: rpc_payment.m_timestamp
+src/wallet/wallet_rpc_server.cpp:2056:uninitStructMember Uninitialized struct member: rpc_payment.m_coinbase
+src/wallet/wallet_rpc_server.cpp:2056:uninitStructMember Uninitialized struct member: rpc_payment.m_subaddr_index
+src/wallet/wallet_rpc_server.cpp:2111:uninitStructMember Uninitialized struct member: rpc_payment.m_tx_hash
+src/wallet/wallet_rpc_server.cpp:2111:uninitStructMember Uninitialized struct member: rpc_payment.m_amount
+src/wallet/wallet_rpc_server.cpp:2111:uninitStructMember Uninitialized struct member: rpc_payment.m_fee
+src/wallet/wallet_rpc_server.cpp:2111:uninitStructMember Uninitialized struct member: rpc_payment.m_block_height
+src/wallet/wallet_rpc_server.cpp:2111:uninitStructMember Uninitialized struct member: rpc_payment.m_unlock_time
+src/wallet/wallet_rpc_server.cpp:2111:uninitStructMember Uninitialized struct member: rpc_payment.m_timestamp
+src/wallet/wallet_rpc_server.cpp:2111:uninitStructMember Uninitialized struct member: rpc_payment.m_coinbase
+src/wallet/wallet_rpc_server.cpp:2111:uninitStructMember Uninitialized struct member: rpc_payment.m_subaddr_index
+src/wallet/wallet2.cpp:8505:arrayIndexOutOfBoundsCond Either the condition 'fee_algorithm>3' is redundant or the array 'multipliers[4]' is accessed at index 4, which is out of bounds.
+src/wallet/wallet2.cpp:8505:negativeIndex Either the condition 'fee_algorithm<0' is redundant or the array 'multipliers[4]' is accessed at index -1, which is out of bounds.
+src/wallet/wallet2.cpp:1942:containerOutOfBounds Either the condition 'index.major>=m_subaddress_labels.size()' is redundant or 'index.major' can have the value greater or equal to m_subaddress_labels.size(). Expression 'm_subaddress_labels[index.major]' causes access out of bounds.

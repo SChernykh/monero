@@ -54,7 +54,7 @@
   #include <fstream>
 #endif
 
-#include "unbound.h"
+#include <unbound.h>
 
 #include "include_base_utils.h"
 #include "file_io_utils.h"
