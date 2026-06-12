@@ -132,6 +132,15 @@ set(blockchain_stats_private_headers)
 monero_private_headers(blockchain_stats
 	  ${blockchain_stats_private_headers})
 
+set(blockchain_header_stats_sources
+  blockchain_header_stats.cpp
+  )
+
+set(blockchain_header_stats_private_headers)
+
+monero_private_headers(blockchain_header_stats
+	  ${blockchain_header_stats_private_headers})
+
 
 monero_add_executable(blockchain_import
   ${blockchain_import_sources}
@@ -287,6 +296,42 @@ set_property(TARGET blockchain_stats
 	PROPERTY
 	OUTPUT_NAME "monero-blockchain-stats")
 install(TARGETS blockchain_stats DESTINATION bin)
+
+find_package(ZLIB REQUIRED) # used by blockchain_header_stats for the deflate comparison
+
+monero_add_executable(blockchain_header_stats
+  ${blockchain_header_stats_sources}
+  ${blockchain_header_stats_private_headers})
+
+target_link_libraries(blockchain_header_stats
+  PRIVATE
+    cryptonote_core
+    blockchain_db
+    version
+    epee
+    ZLIB::ZLIB
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${EXTRA_LIBRARIES})
+
+set_property(TARGET blockchain_header_stats
+	PROPERTY
+	OUTPUT_NAME "monero-blockchain-header-stats")
+install(TARGETS blockchain_header_stats DESTINATION bin)
+
+monero_add_executable(nonce_bit_order_search
+  nonce_bit_order_search.cpp)
+
+target_link_libraries(nonce_bit_order_search
+  PRIVATE
+    ${CMAKE_THREAD_LIBS_INIT})
+
+set_property(TARGET nonce_bit_order_search
+	PROPERTY
+	OUTPUT_NAME "monero-nonce-bit-order-search")
+install(TARGETS nonce_bit_order_search DESTINATION bin)
 
 monero_add_executable(blockchain_prune_known_spent_data
   ${blockchain_prune_known_spent_data_sources}

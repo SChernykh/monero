@@ -35,6 +35,7 @@ set(common_sources
   download.cpp
   error.cpp
   expect.cpp
+  header_codec.cpp
   util.cpp
   i18n.cpp
   notify.cpp

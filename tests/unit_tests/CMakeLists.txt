@@ -56,6 +56,7 @@ set(unit_tests_sources
   json_serialization.cpp
   get_xtype_from_string.cpp
   hashchain.cpp
+  header_codec.cpp
   hmac_keccak.cpp
   http.cpp
   keccak.cpp
